@@ -25,14 +25,105 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
   <j:if test="${action.visible}">
-        <st:nbsp/>
-        <a href="lastFailedBuild/console">${%Console output}</a>
-      <j:if test="${!action.complete}">
-        <br /><i>${%Snip!} (<a href="lastFailedBuild/consoleFull">${%Full log}</a>)</i>
-      </j:if>
-      <pre style="max-width: auto">
-        <st:getOutput var="output" />
-        <j:whitespace>${action.writeLogTo(output)}</j:whitespace>
-      </pre>
+    <st:nbsp/>
+    <j:set var="build" value="${action.build}" />
+    <j:if test="${build != null}">
+      <j:set var="isBuilding" value="${build.building}" />
+      <style>
+        #console-tail-container {
+          position: relative;
+          width: 80vw;
+          max-width: 100vw;
+          height: 40vh;
+          background:rgb(221, 236, 251);
+          color: #222;
+          z-index: 999;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+          margin: 2em auto;
+          display: flex;
+          flex-direction: column;
+          border-radius: 6px;
+          overflow: hidden;
+          flex-basis: auto;
+        }
+        #console-tail-toolbar {
+          background: #e9ecef;
+          color: #222;
+          padding: 0.5em 1em;
+          font-size: 15px;
+          display: flex;
+          align-items: center;
+          border-bottom: 1px solid #ccc;
+          min-height: 2.5em;
+        }
+        #console-tail-toolbar a {
+          color: #1976d2;
+          text-decoration: none;
+          margin-right: 1.5em;
+        }
+        #console-tail-toolbar a:hover {
+          text-decoration: underline;
+        }
+        #console-tail-log {
+          flex: 1 1 auto;
+          width: 100%;
+          height: 100%;
+          background: #fff;
+          color: #222;
+          font-family: 'JetBrains Mono', 'Fira Mono', 'Consolas', monospace;
+          font-size: 15px;
+          margin: 0;
+          padding: 1em;
+          overflow: auto;
+          box-sizing: border-box;
+          line-height: 1.6;
+          border: none;
+        }
+      </style>
+      <div id="console-tail-container">
+        <div id="console-tail-toolbar">
+          <a href="../${build.number}/console">
+            <j:choose>
+              <j:when test="${isBuilding}">${%Console output} (Building...)</j:when>
+              <j:otherwise>${%Console output}</j:otherwise>
+            </j:choose>
+          </a>
+          <j:if test="${!action.complete}">
+            <span style="margin-right:1.5em;">${%Snip!} (<a href="../${build.number}/consoleFull" style="color:#4ea1ff;">${%Full log}</a>)</span>
+          </j:if>
+        </div>
+        <pre id="console-tail-log" data-is-building="${isBuilding}">
+          <st:getOutput var="output" />
+          <j:whitespace>${action.writeLogTo(output)}</j:whitespace>
+        </pre>
+      </div>
+      <script type="text/javascript">
+        <![CDATA[
+        (function() {
+          function refreshLog() {
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function() {
+              if (xhr.readyState === 4 && xhr.status === 200) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(xhr.responseText, 'text/html');
+                var newLog = doc.getElementById('console-tail-log');
+                if (newLog) {
+                  var logElem = document.getElementById('console-tail-log');
+                  logElem.innerHTML = newLog.innerHTML;
+                  var isBuilding = newLog.getAttribute('data-is-building') === 'true';
+                  if (isBuilding) {
+                    logElem.scrollTop = logElem.scrollHeight;
+                  }
+                }
+              }
+            };
+            xhr.open('GET', window.location.pathname + window.location.search, true);
+            xhr.send();
+          }
+          setInterval(refreshLog, 200);
+        })();
+        ]]>
+      </script>
+    </j:if>
   </j:if>
 </j:jelly>

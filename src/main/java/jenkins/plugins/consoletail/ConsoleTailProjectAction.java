@@ -69,25 +69,18 @@ public class ConsoleTailProjectAction<P extends AbstractProject<P, R>, R extends
             return null;
         }
         R build = project.getLastBuild();
-        while (build != null && build.isBuilding()) {
-            build = build.getPreviousBuild();
-        }
-        if (build == null) {
-            return null;
-        }
-        return Result.UNSTABLE.isBetterOrEqualTo(build.getResult()) ? build : null;
+        return build;
     }
 
     public boolean isComplete() throws IOException {
-        R build = getBuild();
-        return build == null || build.getLogText().length() < 4096L;
+        return false;
     }
 
     @SuppressFBWarnings(value = "RV_RETURN_VALUE_IGNORED", justification = "Requires triage")
     public void writeLogTo(XMLOutput out) throws IOException {
         R build = getBuild();
         if (build != null) {
-            build.getLogText().writeHtmlTo(Math.max(0L, build.getLogText().length() - 4096L), out.asWriter());
+            build.getLogText().writeHtmlTo(Math.max(0L, build.getLogText().length() - 20480L), out.asWriter());
         }
     }
 }
