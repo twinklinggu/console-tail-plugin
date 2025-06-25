@@ -32,9 +32,8 @@
       <style>
         #console-tail-container {
           position: relative;
-          width: 80vw;
-          max-width: 100vw;
-          height: 40vh;
+          width: calc(100vw - 340px - 4em);
+          height: 50vh;
           background:rgb(221, 236, 251);
           color: #222;
           z-index: 999;
@@ -82,14 +81,14 @@
       </style>
       <div id="console-tail-container">
         <div id="console-tail-toolbar">
-          <a href="../${build.number}/console">
+          <a href="${build.number}/console">
             <j:choose>
               <j:when test="${isBuilding}">${%Console output} (Building...)</j:when>
               <j:otherwise>${%Console output}</j:otherwise>
             </j:choose>
           </a>
           <j:if test="${!action.complete}">
-            <span style="margin-right:1.5em;">${%Snip!} (<a href="../${build.number}/consoleFull" style="color:#4ea1ff;">${%Full log}</a>)</span>
+            <span style="margin-right:1.5em;">${%Snip!} (<a href="${build.number}/consoleFull" style="color:#4ea1ff;">${%Full log}</a>)</span>
           </j:if>
         </div>
         <pre id="console-tail-log" data-is-building="${isBuilding}">
